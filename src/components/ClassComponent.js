@@ -7,63 +7,61 @@ export default class ClassComponent extends Component {
     this.state = {
       count: 0,
       action: "",
+      data: [],
     };
   }
 
-  fetchData = () => {
+  fetchData() {
     fetch(`https://reqres.in/api/${this.state.action}`)
-      .then((res) => console.log({ res }))
-      .catch((error) => console.log(error));
-  };
-
+      .then((res) => res.json())
+      .then((data) => {
+        this.setState({ data: data.data || [] });
+      })
+      .catch((err) => console.log(err));
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.count !== prevState.count)
+      document.title = `This is title was clicked: ${this.state.count} times`;
+    if (this.state.action !== prevState.action) {
+      if (this.state.action) this.fetchData();
+    }
+  }
   componentDidMount() {
-    this.fetchData();
+    if (this.state.action) this.fetchData();
   }
 
-  componentDidUpdate(prevState, prevProps) {
-    if (this.state.action !== prevProps.action) {
-      this.fetchData();
-    }
-
-    if (this.state.count !== prevState.count) {
-      document.title = `Your clicked ${this.state.count} times`;
-    }
-  }
-
-  onClick = () => {
-    this.setState((prevState) => ({
-      count: prevState.count + 1,
-    }));
+  onClick = (data) => {
+    this.setState({
+      action: data,
+    });
   };
-
-  onClickAction = (data) => {
-    console.log(data);
-    this.setState({ action: data });
-  };
-
-  // onChange = (e) => {
-  //   this.setState({ name: { name: e.target.value } });
-  // };
   render() {
     return (
       <>
-        <div>Class Component</div>
-        <p>How many times when you click a button: {this.state.count}</p>
-        <button onClick={this.onClick}>Click here</button>
-        <button onClick={() => this.onClickAction("user")}>Action User</button>
-        <button onClick={() => this.onClickAction("comment")}>
-          Action Comment
+        <div>ClassComponent</div>
+        <p>You was clicked: {this.state.count} times</p>
+        <button
+          onClick={() => {
+            this.setState({ count: this.state.count + 1 });
+          }}
+        >
+          Click here to add a number
         </button>
-        {/*
-        <div> Get user info in Class Component</div>
-        <input
-          type="text"
-          name="name"
-          placeholder="Your name here!"
-          onChange={this.onChange}
-        />
-        <p> Your name show here: {JSON.stringify(this.state.name)}</p>
-        */}
+        <p>What is action set: {this.state.action}</p>
+        <button onClick={() => this.onClick("users")}>Add Users</button>
+        <button onClick={() => this.onClick("comment")}>Add Comment</button>
+        <div>
+          <p>This is the list of colors:</p>
+          <ul>
+            {this.state.data.map((item) => (
+              <li key={item.id}>
+                <strong>Name:</strong> {item.name}, <strong>Year:</strong>{" "}
+                {item.year}, <strong>Color:</strong> {item.color},{" "}
+                <strong>Pantone Value:</strong> {item.pantone_value}
+              </li>
+            ))}
+          </ul>
+        </div>
       </>
     );
   }
